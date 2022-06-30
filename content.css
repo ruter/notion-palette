@@ -1,0 +1,11 @@
+.command-palette-item .command-palette-item-sign {
+    display: none;
+}
+
+.command-palette-item.selected {
+    background: rgba(55, 53, 47, 0.08);
+}
+
+.command-palette-item.selected .command-palette-item-sign {
+    display: block;
+}

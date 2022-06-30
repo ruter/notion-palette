@@ -1,0 +1,36 @@
+{
+  "name": "Notion Palette",
+  "manifest_version": 3,
+  "description": "Use command palette to make Notion powerful.",
+  "version": "1.0",
+  "offline_enabled": false,
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+		{
+			"matches": [
+        "https://www.notion.so/*"
+			],
+			"run_at": "document_end",
+			"js": ["content.js"],
+			"css": ["content.css"]
+		}
+	],
+  "permissions": ["scripting", "activeTab", "tabs"],
+  "commands": {
+    "show_command_palette": {
+        "suggested_key": {
+            "default": "Alt+P",
+            "mac": "Alt+P"
+        },
+      "description": "Show command palette on the current page."
+    }
+  }
+}
