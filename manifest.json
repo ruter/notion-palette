@@ -19,11 +19,11 @@
         "https://www.notion.so/*"
 			],
 			"run_at": "document_end",
-			"js": ["content.js"],
+			"js": ["sval.min.js", "content.js"],
 			"css": ["content.css"]
 		}
 	],
-  "permissions": ["scripting", "activeTab", "tabs"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "commands": {
     "show_command_palette": {
         "suggested_key": {

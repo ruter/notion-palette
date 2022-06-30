@@ -15,7 +15,15 @@ document.addEventListener("click", (e) => {
     removeCommandPalette();
 });
 
-function getCommanItems() {
+function showAllCommands() {
+    let commandList = document.createElement("div");
+    commandList.id = "notion-command-palette-list";
+    commandList.style = "padding-top: 0px; padding-bottom: 8px;";
+    commandList.innerHTML = `<div style="display: flex; padding: 2px 14px 0px; margin: 0px; color: rgba(55, 53, 47, 0.65); font-size: 11px; font-weight: 500; line-height: 120%; user-select: none; height: 32px; align-items: center; text-transform: uppercase;">
+        <div style="align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Commands</div></div>
+        <ul style="list-style-type: none; padding: 0px; margin: 0px;"></ul>`;
+    document.querySelector("#notion-command-palette main div").appendChild(commandList);
+
     let commandItemEl = document.createElement("div");
     commandItemEl.className = "notranslate notion-focusable command-palette-item";
     commandItemEl.setAttribute("tabindex", "0");
@@ -58,33 +66,22 @@ function getCommanItems() {
         </div>`;
 
     let commandItems = [];
-    let commands = [
-        {id: 1, title: 'Command Palette 001', description: 'This is the command description', icon: 'http://api.wolai.com/v1/icon?type=2&locale=en&date=2022-06-30&pro=0&color=green'},
-        {id: 2, title: 'Command Palette 002', description: 'This is the second command description', icon: 'http://api.wolai.com/v1/icon?type=2&locale=en&date=2022-06-28&pro=0&color=red'},
-    ];
-    for (let command of commands) {
-        let commandItem = commandItemEl.cloneNode(true);
-        commandItem.dataset.commandId = command.id;
-        commandItem.querySelector(".command-palette-item-icon img").src = command.icon;
-        commandItem.querySelector(".command-palette-item-title").innerText = command.title;
-        commandItem.querySelector(".command-palette-item-desc").innerText = command.description;
-        commandItems.push(commandItem);
-    }
-    commandItems[0].classList.add("selected");
-    return commandItems; 
-}
-
-function showAllCommands() {
-    let commandList = document.createElement("div");
-    commandList.id = "notion-command-palette-list";
-    commandList.style = "padding-top: 0px; padding-bottom: 8px;";
-    commandList.innerHTML = `<div style="display: flex; padding: 2px 14px 0px; margin: 0px; color: rgba(55, 53, 47, 0.65); font-size: 11px; font-weight: 500; line-height: 120%; user-select: none; height: 32px; align-items: center; text-transform: uppercase;">
-        <div style="align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Commands</div></div>
-        <ul style="list-style-type: none; padding: 0px; margin: 0px;"></ul>`;
-
-    let commandItems = getCommanItems();
-    commandList.querySelector("ul").append(...commandItems);
-    document.querySelector("#notion-command-palette main div").appendChild(commandList);
+    chrome.storage.sync.get(["commands"], function(result) {
+        if (result === "undefined") {
+            console.error("No commands found");
+        } else {
+            for (let command of result.commands) {
+                let commandItem = commandItemEl.cloneNode(true);
+                commandItem.dataset.commandId = command.id;
+                commandItem.querySelector(".command-palette-item-icon img").src = command.icon;
+                commandItem.querySelector(".command-palette-item-title").innerText = command.title;
+                commandItem.querySelector(".command-palette-item-desc").innerText = command.description;
+                commandItems.push(commandItem);
+            }
+            commandItems[0].classList.add("selected");
+            commandList.querySelector("ul").append(...commandItems);
+        }
+    });
 }
 
 function bindCommandEvents() {
@@ -138,8 +135,19 @@ function bindCommandEvents() {
 }
 
 function executeCommand(commandId) {
-    // TODO: execute command
-    console.log(`Executing command ${commandId}`);
+    chrome.storage.sync.get(["commands"], function(result) {
+        if (result === "undefined") {
+            console.error("No commands found");
+        } else {
+            for (let command of result.commands) {
+                if (command.id == commandId) {
+                    const interpreter = new Sval({ecmaVer: 9, sandbox: true});
+                    interpreter.run(command.script);
+                    console.log(`Execute command ${command.title}`);
+                }
+            }
+        }
+    });
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
