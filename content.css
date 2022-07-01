@@ -9,3 +9,7 @@
 .command-palette-item.selected .command-palette-item-sign {
     display: block;
 }
+
+.command-palette-item.hidden {
+    display: none;
+}

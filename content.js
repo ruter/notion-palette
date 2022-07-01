@@ -1,5 +1,7 @@
 const CREATE_CMD = "CREATE-NEW-COMMAND";
 
+let inputTimeout = null;
+
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
         removeCommandPalette();
@@ -17,12 +19,28 @@ function removeCommandPalette() {
     }
 }
 
+function getSiblingCommandItem(commandItem, direction) {
+    let siblingItem = null;
+    if (direction === "previous") {
+        siblingItem = commandItem.previousElementSibling;
+        while (siblingItem && siblingItem.classList.includes("hidden")) {
+            siblingItem = siblingItem.previousElementSibling;
+        }
+    } else {
+        siblingItem = commandItem.nextElementSibling;
+        while (siblingItem && siblingItem.classList.includes("hidden")) {
+            siblingItem = siblingItem.previousElementSibling;
+        }
+    }
+    return siblingItem;
+}
+
 function showAllCommands() {
     let commandList = document.createElement("div");
     commandList.id = "notion-command-palette-list";
     commandList.style = "padding-top: 0px; padding-bottom: 8px;";
     commandList.innerHTML = `<div style="display: flex; padding: 2px 14px 0px; margin: 0px; color: rgba(55, 53, 47, 0.65); font-size: 11px; font-weight: 500; line-height: 120%; user-select: none; height: 32px; align-items: center; text-transform: uppercase;">
-        <div style="align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Commands</div></div>
+        <div id="command-palette-title" style="align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">All Commands</div></div>
         <ul style="list-style-type: none; padding: 0px; margin: 0px;"></ul>`;
     document.querySelector("#notion-command-palette main div").appendChild(commandList);
 
@@ -88,8 +106,59 @@ function showAllCommands() {
     });
 }
 
-function searchCommands() {
-
+function searchCommands(commandPalette) {
+    let emptyEl = document.querySelector("#command-palette-empty");
+    if (emptyEl) {
+        emptyEl.remove();
+    }
+    let searchText = commandPalette.value;
+    let commandItems = document.querySelectorAll(".command-palette-item");
+    if (searchText.length > 0) {
+        let setSelected = false;
+        searchText = searchText.toLowerCase();
+        commandItems.forEach(item => {
+            item.classList.remove("selected");
+            if (item.innerText.toLowerCase().includes(searchText)) {
+                item.classList.remove("hidden");
+                if (!setSelected) {
+                    item.classList.add("selected");
+                    setSelected = true;
+                }
+            } else {
+                item.classList.add("hidden");
+            }
+        });
+        document.querySelector("#command-palette-title").innerText = "Search Results";
+        if (!setSelected) {
+            emptyEl = document.createElement("div");
+            emptyEl.id = "command-palette-empty";
+            emptyEl.style = "display: flex; flex-direction: column; width: 100%;";
+            emptyEl.innerHTML = `<section style="flex: 1 1 0%; display: flex; flex-direction: column; overflow: auto; height: 100%;">
+                <div style="display: flex; align-items: center; line-height: 120%; width: 100%; user-select: none; font-size: 14px; padding-top: 32px; padding-bottom: 32px; margin-top: auto; margin-bottom: auto;">
+                    <div style="margin-left: 12px; margin-right: 12px; min-width: 0px; flex: 1 1 auto; text-align: center;">
+                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <h4 role="alert" style="margin: 0px; font-weight: 500; font-size: 14px; line-height: 20px; color: rgba(55, 53, 47, 0.65);">
+                                No results
+                            </h4>
+                        </div>
+                        <div style="white-space: normal; overflow: hidden; text-overflow: ellipsis; color: rgba(55, 53, 47, 0.65); margin-top: auto; font-size: 14px;">
+                            <div style="font-size: 14px; margin-top: auto; color: rgba(55, 53, 47, 0.5);">
+                                Oops! Command not found...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>`;
+            document.querySelector("#notion-command-palette-list").appendChild(emptyEl);
+        }
+    } else {
+        commandItems.forEach(item => {
+            item.classList.remove("selected");
+            item.classList.remove("hidden");
+        });
+        document.querySelector("#command-palette-title").innerText = "All Commands";
+        commandItems[0].classList.add("selected");
+    }
 }
 
 function bindCommandEvents() {
@@ -127,17 +196,19 @@ function bindCommandEvents() {
             const scrollTop = mainList.scrollTop;
 
             if (e.key === "ArrowUp") {
-                if (selectedItem.previousElementSibling) {
+                let siblingItem = getSiblingCommandItem(selectedItem, "previous");
+                if (siblingItem) {
                     selectedItem.classList.remove("selected");
-                    selectedItem.previousElementSibling.classList.add("selected");
+                    siblingItem.classList.add("selected");
                     if (offsetTop - itemHeight * 2 <= scrollHeight - mainHeight) {
                         mainList.scroll({ top: scrollTop - itemHeight * 2, behavior: "smooth" });
                     }
                 }
             } else {
-                if (selectedItem.nextElementSibling) {
+                let siblingItem = getSiblingCommandItem(selectedItem, "next");
+                if (siblingItem) {
                     selectedItem.classList.remove("selected");
-                    selectedItem.nextElementSibling.classList.add("selected");
+                    siblingItem.classList.add("selected");
                     if (offsetTop + itemHeight > mainHeight) {
                         mainList.scroll({ top: scrollTop + itemHeight, behavior: "smooth" });
                     }
@@ -168,6 +239,12 @@ function bindCommandEvents() {
             }
             removeCommandPalette();
         }
+    });
+
+    commandPalette.addEventListener("keyup", (e) => {
+        e.stopPropagation();
+        clearTimeout(inputTimeout);
+        inputTimeout = setTimeout(() => { searchCommands(commandPalette) }, 500);
     });
 }
 
