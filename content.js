@@ -88,6 +88,10 @@ function showAllCommands() {
     });
 }
 
+function searchCommands() {
+
+}
+
 function bindCommandEvents() {
     // Add mouseover event listeners to command items
     let commandListEl = document.querySelector("#notion-command-palette-list ul");
@@ -321,6 +325,14 @@ function showCommandDialog(commandId) {
     });
 
     overlayEl.addEventListener("keydown", (e) => {
+        e.stopPropagation();
+    });
+
+    overlayEl.addEventListener("cut", (e) => {
+        e.stopPropagation();
+    });
+
+    overlayEl.addEventListener("copy", (e) => {
         e.stopPropagation();
     });
 
