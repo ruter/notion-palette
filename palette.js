@@ -1,7 +1,6 @@
 function showCommandPalette() {
     const PALETTE_HTML = `<div id="notion-command-palette" data-overlay="true" style="pointer-events: auto; position: relative; z-index: 0;">
-        <div
-            style="width: 100vw; height: 100vh; position: fixed; top: 0px; left: 0px; display: flex; align-items: flex-start; justify-content: center; pointer-events: auto;">
+        <div style="width: 100vw; height: 100vh; position: fixed; top: 0px; left: 0px; display: flex; align-items: flex-start; justify-content: center; pointer-events: auto;">
             <div style="position: absolute; inset: 0px; background: rgba(15, 15, 15, 0.6);"></div>
             <div style="position: relative; z-index: 1; box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 5px 10px, rgba(15, 15, 15, 0.2) 0px 15px 40px; border-radius: 5px; background: white; margin-bottom: 0px; top: 90px; overflow: hidden; width: 75%; min-height: 50px; max-height: 80vh; max-width: 600px;">
                 <div class="notion-quick-find-menu" style="display: flex; flex-direction: column; min-width: 180px; max-width: calc(100vw - 24px); height: 100%; max-height: 80vh; min-height: 50px;">
@@ -31,6 +30,12 @@ function showCommandPalette() {
                                             <li style="display: inline; margin-right: 16px;">
                                                 <span style="margin-right: 4px; margin-bottom: 1px; font-variant: all-small-caps; font-size: 13.2px; color: rgba(55, 53, 47, 0.65);">↵</span>Execute
                                             </li>
+                                            <li style="display: inline; margin-right: 16px;">
+                                                <span style="font-size: 10.5px; color: rgba(55, 53, 47, 0.65);">shift</span><span style="margin-right: 4px; margin-bottom: 1px; font-variant: all-small-caps; font-size: 13.2px; color: rgba(55, 53, 47, 0.65);">+↵</span>Edit
+                                            </li>
+                                            <li style="display: inline; margin-right: 16px;">
+                                                <span style="font-size: 10.5px; color: rgba(55, 53, 47, 0.65);">shift</span><span style="margin-right: 4px; margin-bottom: 1px; font-variant: all-small-caps; font-size: 13.2px; color: rgba(55, 53, 47, 0.65);">+⌫</span>Delete
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
@@ -49,6 +54,9 @@ function showCommandPalette() {
     let commandPalette = document.querySelector(".notion-quick-find-menu input");
     commandPalette.focus();
     commandPalette.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+    commandPalette.addEventListener("paste", (e) => {
         e.stopPropagation();
     });
 }
