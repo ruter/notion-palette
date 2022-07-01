@@ -1,3 +1,30 @@
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === "install") {
+        chrome.storage.sync.get(["commands"], (result) => {
+            if (result === "undefined") {
+                chrome.storage.sync.set({ commands: [] });
+            }
+        });
+        chrome.storage.sync.get(["commandEnv"], (result) => {
+            if (result === "undefined") {
+                chrome.storage.sync.set({ commandEnv: {} });
+            }
+        });
+        chrome.tabs.create({ url: "" });
+    } else if (details.reason === "update") {
+        chrome.storage.sync.get(["commands"], (result) => {
+            if (result === "undefined") {
+                chrome.storage.sync.set({ commands: [] });
+            }
+        });
+        chrome.storage.sync.get(["commandEnv"], (result) => {
+            if (result === "undefined") {
+                chrome.storage.sync.set({ commandEnv: {} });
+            }
+        });
+    }
+});
+
 chrome.commands.onCommand.addListener(async (command) => {
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab.url.startsWith("https://www.notion.so")) {
