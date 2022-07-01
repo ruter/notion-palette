@@ -1,4 +1,18 @@
 const CREATE_CMD = "CREATE-NEW-COMMAND";
+const ENV_CMD = "ENV-CMD";
+
+const DEFAULT_COMMANDS = [CREATE_CMD, ENV_CMD];
+const DEFAULT_COMMANDS_DEFINE = [{
+    id: CREATE_CMD,
+    name: "Create New Command",
+    icon: chrome.runtime.getURL("assets/command.png"),
+    desc: "Use this command to create your own command.",
+}, {
+    id: ENV_CMD,
+    name: "Command Secrets",
+    icon: chrome.runtime.getURL("assets/lock.png"),
+    desc: "Store your command secrets or environment variables here, and they will be available to all commands, use getEnv('key') to retrieve.",
+}];
 
 let inputTimeout = null;
 
@@ -23,12 +37,12 @@ function getSiblingCommandItem(commandItem, direction) {
     let siblingItem = null;
     if (direction === "previous") {
         siblingItem = commandItem.previousElementSibling;
-        while (siblingItem && siblingItem.classList.includes("hidden")) {
+        while (siblingItem && siblingItem.classList.contains("hidden")) {
             siblingItem = siblingItem.previousElementSibling;
         }
     } else {
         siblingItem = commandItem.nextElementSibling;
-        while (siblingItem && siblingItem.classList.includes("hidden")) {
+        while (siblingItem && siblingItem.classList.contains("hidden")) {
             siblingItem = siblingItem.previousElementSibling;
         }
     }
@@ -99,8 +113,14 @@ function showAllCommands() {
                 commandItems.push(commandItem);
             }
         }
-        commandItemEl.querySelector(".command-palette-item-icon img").src = chrome.runtime.getURL("assets/command.png");
-        commandItems.push(commandItemEl);
+        DEFAULT_COMMANDS_DEFINE.forEach(command => {
+            let commandItem = commandItemEl.cloneNode(true);
+            commandItem.dataset.id = command.id;
+            commandItem.querySelector(".command-palette-item-icon img").src = command.icon || chrome.runtime.getURL("assets/empty.png");
+            commandItem.querySelector(".command-palette-item-title").innerText = command.name;
+            commandItem.querySelector(".command-palette-item-desc").innerText = command.desc;
+            commandItems.push(commandItem);
+        });
         commandItems[0].classList.add("selected");
         commandList.querySelector("ul").append(...commandItems);
     });
@@ -229,7 +249,7 @@ function bindCommandEvents() {
         } else if (e.key === "Backspace" && e.shiftKey) {
             e.preventDefault();
             let selectedItem = commandListEl.querySelector(".command-palette-item.selected");
-            if (selectedItem.dataset.id === CREATE_CMD) {
+            if (DEFAULT_COMMANDS.includes(selectedItem.dataset.id)) {
                 showToastMsg("Cannot delete this command");
             } else {
                 let commandTitle = selectedItem.querySelector(".command-palette-item-title").innerText;
@@ -238,13 +258,12 @@ function bindCommandEvents() {
                 });
             }
             removeCommandPalette();
+        } else {
+            if (!(e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
+                clearTimeout(inputTimeout);
+                inputTimeout = setTimeout(() => { searchCommands(commandPalette) }, 500);
+            }
         }
-    });
-
-    commandPalette.addEventListener("keyup", (e) => {
-        e.stopPropagation();
-        clearTimeout(inputTimeout);
-        inputTimeout = setTimeout(() => { searchCommands(commandPalette) }, 500);
     });
 }
 
@@ -357,7 +376,7 @@ function showCommandDialog(commandId) {
                                         style="font-size: inherit;line-height: inherit;border: none;background: none;width: 100%;display: block;resize: auto;padding: 0px;height: 240px;"></textarea>
                                 </div>
                             </div>
-                            <div style="font-size: 12px; line-height: 16px; color: rgba(55, 53, 47, 0.65); margin-top: 4px;">
+                            <div id="command-item-code-desc" style="font-size: 12px; line-height: 16px; color: rgba(55, 53, 47, 0.65); margin-top: 4px;">
                                 Write your command code here, only support JavaScript. See the
                                 <a href="#" target="_blank" rel="noopener noreferrer" class="notion-link" style="display: inline; text-decoration: underline; user-select: none; cursor: pointer; color: inherit;">
                                     docs
@@ -423,37 +442,73 @@ function showCommandDialog(commandId) {
 
     overlayEl.querySelector("#command-button-save").addEventListener("click", () => {
         let commandId = overlayEl.dataset.id;
-        chrome.storage.sync.get(["commands"], function(result) {
-            if (result === "undefined") {
-                console.error("Command not found");
-            } else {
-                let iconUrl = overlayEl.querySelector("#command-item-icon").value;
-                let commandTitle = overlayEl.querySelector("#command-item-name").value;
-                let commandDesc = overlayEl.querySelector("#command-item-desc").value;
-                let commandScript = overlayEl.querySelector("#command-item-code").value;
-                if (commandId) {
-                    let command = result.commands.find(cmd => cmd.id == commandId);
-                    command.icon = iconUrl;
-                    command.title = commandTitle;
-                    command.description = commandDesc;
-                    command.script = commandScript;
-                } else {
-                    result.commands.push({
-                        id: new Date().getTime(),
-                        icon: iconUrl,
-                        title: commandTitle,
-                        description: commandDesc,
-                        script: commandScript
-                    });
+        if (commandId === ENV_CMD) {
+            let commandEnv = document.querySelector("#command-item-code").value;
+            try {
+                commandEnv = JSON.parse(commandEnv);
+                chrome.storage.sync.set({ commandEnv: commandEnv });
+            } catch (e) {
+                if (e instanceof SyntaxError) {
+                    showToastMsg("Invalid JSON syntax");
                 }
-                chrome.storage.sync.set({"commands": result.commands});
+                console.error(e);
+                return;
             }
-        });
+        } else {
+            chrome.storage.sync.get(["commands"], function(result) {
+                if (result === "undefined") {
+                    console.error("Command not found");
+                } else {
+                    let iconUrl = overlayEl.querySelector("#command-item-icon").value;
+                    let commandTitle = overlayEl.querySelector("#command-item-name").value;
+                    let commandDesc = overlayEl.querySelector("#command-item-desc").value;
+                    let commandScript = overlayEl.querySelector("#command-item-code").value;
+                    if (commandId) {
+                        let command = result.commands.find(cmd => cmd.id == commandId);
+                        command.icon = iconUrl;
+                        command.title = commandTitle;
+                        command.description = commandDesc;
+                        command.script = commandScript;
+                    } else {
+                        result.commands.push({
+                            id: new Date().getTime(),
+                            icon: iconUrl,
+                            title: commandTitle,
+                            description: commandDesc,
+                            script: commandScript
+                        });
+                    }
+                    chrome.storage.sync.set({"commands": result.commands});
+                }
+            });
+        }
         overlayEl.remove();
     });
 
     let overlayContainer = document.querySelector(".notion-overlay-container");
-    if (commandId) {
+    if (commandId === ENV_CMD) {
+        overlayEl.dataset.id = commandId;
+        overlayEl.querySelector("#command-dialog-title").innerText = "Command Secrets";
+        overlayEl.querySelector("#command-button-save").innerText = "Update";
+        overlayEl.querySelector("#command-item-icon").disabled = true;
+        overlayEl.querySelector("#command-item-icon").value = chrome.runtime.getURL("assets/lock.png");
+        overlayEl.querySelector("#command-item-name").disabled = true;
+        overlayEl.querySelector("#command-item-name").value = "Command Secrets";
+        overlayEl.querySelector("#command-item-desc").disabled = true;
+        overlayEl.querySelector("#command-item-desc").value = "Store your command secrets or environment variables here, use getEnv('key') to retrieve.";
+        let commandItemCode = overlayEl.querySelector("#command-item-code");
+        commandItemCode.placeholder = "A JSON object containing your command secrets or environment variables…";
+        overlayEl.querySelector("#command-item-code-desc").innerHTML = 'Place your command secrets or environment variables here, must be a valid JSON object. See the <a href="#" target="_blank" rel="noopener noreferrer" class="notion-link" style="display: inline; text-decoration: underline; user-select: none; cursor: pointer; color: inherit;">docs</a> for more information.';
+        chrome.storage.sync.get(["commandEnv"], (result) => {
+            let commandEnv = {};
+            if (result !== "undefined") {
+                commandEnv = result.commandEnv;
+            }
+            commandItemCode.value = JSON.stringify(commandEnv, null, 2);
+        });
+        overlayEl.querySelector("#command-item-danger-zone").style = "display: none;";
+        overlayContainer.appendChild(overlayEl);
+    } else if (commandId) {
         overlayEl.dataset.id = commandId;
         overlayEl.querySelector("#command-dialog-title").innerText = "Edit Command";
         overlayEl.querySelector("#command-button-save").innerText = "Update";
@@ -469,7 +524,6 @@ function showCommandDialog(commandId) {
                     overlayEl.querySelector("#command-item-code").value = command.script;
                 }
                 overlayContainer.appendChild(overlayEl);
-
             }
         });
         overlayEl.querySelector("#command-button-delete").addEventListener("click", () => {
@@ -499,6 +553,8 @@ async function getEnv(key) {
 async function executeCommand(commandId) {
     if (commandId === CREATE_CMD) {
         createCommand();
+    } else if (commandId === ENV_CMD) {
+        showCommandDialog(ENV_CMD);
     } else {
         chrome.storage.sync.get(["commands"], function(result) {
             if (result === "undefined") {
