@@ -407,6 +407,9 @@ async function executeCommand(commandId) {
                 let command = result.commands.find(cmd => cmd.id == commandId);
                 if (command) {
                     const interpreter = new Sval({ecmaVer: 9, sandbox: true});
+                    interpreter.import({
+                        showToast: showToastMsg,
+                    });
                     interpreter.run(command.script);
                     console.log(`Execute command ${command.title}`);
                 }
