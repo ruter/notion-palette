@@ -396,6 +396,17 @@ function showCommandDialog(commandId) {
     }
 }
 
+async function getEnv(key) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(["commandEnv"], (result) => {
+      if (chrome.runtime.lastError) {
+        return reject(chrome.runtime.lastError);
+      }
+      resolve(result.commandEnv[key]);
+    });
+  });
+}
+
 async function executeCommand(commandId) {
     if (commandId === CREATE_CMD) {
         createCommand();
@@ -408,6 +419,7 @@ async function executeCommand(commandId) {
                 if (command) {
                     const interpreter = new Sval({ecmaVer: 9, sandbox: true});
                     interpreter.import({
+                        getEnv: getEnv,
                         showToast: showToastMsg,
                     });
                     interpreter.run(command.script);
