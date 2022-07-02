@@ -101,7 +101,7 @@ function showAllCommands() {
 
     let commandItems = [];
     chrome.storage.sync.get(["commands"], function(result) {
-        if (result === "undefined") {
+        if (result.commands === undefined) {
             console.error("No commands found");
         } else {
             for (let command of result.commands) {
@@ -456,7 +456,7 @@ function showCommandDialog(commandId) {
             }
         } else {
             chrome.storage.sync.get(["commands"], function(result) {
-                if (result === "undefined") {
+                if (result.commands === undefined) {
                     console.error("Command not found");
                 } else {
                     let iconUrl = overlayEl.querySelector("#command-item-icon").value;
@@ -513,7 +513,7 @@ function showCommandDialog(commandId) {
         overlayEl.querySelector("#command-dialog-title").innerText = "Edit Command";
         overlayEl.querySelector("#command-button-save").innerText = "Update";
         chrome.storage.sync.get(["commands"], function(result) {
-            if (result === "undefined") {
+            if (result.commands === undefined) {
                 console.error("Command not found");
             } else {
                 let command = result.commands.find(cmd => cmd.id == commandId);
@@ -557,7 +557,7 @@ async function executeCommand(commandId) {
         showCommandDialog(ENV_CMD);
     } else {
         chrome.storage.sync.get(["commands"], function(result) {
-            if (result === "undefined") {
+            if (result.commands === undefined) {
                 console.error("Command not found");
             } else {
                 let command = result.commands.find(cmd => cmd.id == commandId);
@@ -581,7 +581,7 @@ async function createCommand() {
 
 async function deleteCommand(commandId) {
     chrome.storage.sync.get(["commands"], function(result) {
-        if (result === "undefined") {
+        if (resultcommands === undefined) {
             console.error("Command not found");
         } else {
             let command = result.commands.find(cmd => cmd.id == commandId);
