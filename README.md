@@ -98,7 +98,7 @@ After called this function, it will return a `Promise` object, you might like to
 #### Display a Toast
 
 ```javascript
-showToast(content);
+showToast(content)
 ```
 
 | Parameter | Type     | Description                       |
@@ -110,9 +110,9 @@ This function will display a Toast at the page's bottom.
 
 ## Roadmap
 
-- Add `showDialog()` API 
-- Import command via gist
-- Add more API
+- [ ] Add `showDialog()` API 
+- [ ] Import command via gist
+- [ ] Add more API
 
 
 ## Contributing

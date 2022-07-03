@@ -10,7 +10,7 @@ chrome.runtime.onInstalled.addListener((details) => {
                 chrome.storage.sync.set({ commandEnv: {} });
             }
         });
-        chrome.tabs.create({ url: "" });
+        chrome.tabs.create({ url: "https://notion-palette.ruterly.com" });
     } else if (details.reason === "update") {
         chrome.storage.sync.get(["commands"], (result) => {
             if (result.commands === undefined) {
