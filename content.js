@@ -581,7 +581,7 @@ async function createCommand() {
 
 async function deleteCommand(commandId) {
     chrome.storage.sync.get(["commands"], function(result) {
-        if (resultcommands === undefined) {
+        if (result.commands === undefined) {
             console.error("Command not found");
         } else {
             let command = result.commands.find(cmd => cmd.id == commandId);
