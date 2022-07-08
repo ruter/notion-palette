@@ -550,6 +550,10 @@ async function getEnv(key) {
   });
 }
 
+async function copyText(text) {
+    return navigator.clipboard.writeText(text);
+}
+
 async function executeCommand(commandId) {
     if (commandId === CREATE_CMD) {
         createCommand();
@@ -564,6 +568,7 @@ async function executeCommand(commandId) {
                 if (command) {
                     const interpreter = new Sval({ecmaVer: 9, sandbox: true});
                     interpreter.import({
+                        copyText: copyText,
                         getEnv: getEnv,
                         showToast: showToastMsg,
                     });
