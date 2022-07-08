@@ -95,6 +95,18 @@ After called this function, it will return a `Promise` object, you might like to
 })();
 ```
 
+#### Copy text to clipboard
+
+```javascript
+copyText(text);
+```
+
+| Parameter | Type     | Description                         |
+| :-------- | :------- | :---------------------------------- |
+| `text`    | `string` | The text content write to clipboard |
+
+Store text content to the clipboard.
+
 #### Display a Toast
 
 ```javascript
