@@ -2,7 +2,7 @@
   "name": "Notion Palette",
   "manifest_version": 3,
   "description": "Use command palette to make Notion powerful.",
-  "version": "1.1",
+  "version": "1.2",
   "offline_enabled": false,
   "icons": {
     "16": "assets/icon.png",

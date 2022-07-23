@@ -554,6 +554,16 @@ async function copyText(text) {
     return navigator.clipboard.writeText(text);
 }
 
+function getCurrentPageId() {
+    const url = new URL(window.location.href);
+    const pageId = url.searchParams.get('p');
+    if (pageId) {
+        return pageId;
+    } else {
+        return url.pathname.split('-').slice(-1)[0];
+    }
+}
+
 async function executeCommand(commandId) {
     if (commandId === CREATE_CMD) {
         createCommand();
@@ -571,6 +581,7 @@ async function executeCommand(commandId) {
                         copyText: copyText,
                         getEnv: getEnv,
                         showToast: showToastMsg,
+                        getCurrentPageId: getCurrentPageId,
                     });
                     interpreter.run(command.script);
                     console.log(`Execute command ${command.title}`);

@@ -95,6 +95,15 @@ After called this function, it will return a `Promise` object, you might like to
 })();
 ```
 
+#### Get current page's ID
+
+```javascript
+getCurrentPageId()
+```
+
+Return current page's ID. If any page opened in database with *Side peek* or *Center peek* view, this
+function will return the opened page's ID, otherwise it will return the database page's ID.
+
 #### Copy text to clipboard
 
 ```javascript
